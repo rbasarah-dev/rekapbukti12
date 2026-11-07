@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kumpulan Bukti Pembayaran</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+<style>
+:root{
+  --primary:#245f8d;
+  --primary-dark:#17476a;
+  --bg:#f4f7fa;
+  --card:#fff;
+  --border:#dce5ec;
+  --text:#243746;
+  --muted:#71808d;
+  --soft:#eef5fa;
+  --danger:#b42318;
+  --shadow:0 12px 34px rgba(30,60,85,.08);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+  background:var(--bg);
+  line-height:1.5;
+}
+button{font:inherit;cursor:pointer}
+.wrap{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:28px 0 36px}
+.hero{
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+  color:#fff;border-radius:24px;padding:28px;box-shadow:var(--shadow);margin-bottom:20px
+}
+.hero h1{margin:0 0 6px;font-size:30px;line-height:1.15}
+.hero p{margin:0;opacity:.9;font-size:14px}
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:18px;
+  box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden
+}
+.card-head{
+  padding:18px 20px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap
+}
+.card-head h2{margin:0;font-size:18px}
+.card-head p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.card-body{padding:20px}
+.dropzone{
+  border:2px dashed #a7bdcd;border-radius:16px;padding:38px 22px;text-align:center;
+  background:#fbfdff;transition:.2s ease;user-select:none
+}
+.dropzone.drag{border-color:var(--primary);background:var(--soft);transform:translateY(-1px)}
+.drop-icon{
+  width:58px;height:58px;margin:0 auto 12px;border-radius:16px;
+  display:grid;place-items:center;background:var(--soft);font-size:28px
+}
+.dropzone h3{margin:0 0 5px;font-size:17px}
+.dropzone p{margin:0;color:var(--muted);font-size:13px}
+.file-note{margin-top:9px;color:var(--muted);font-size:11px}
+.file-input{display:none}
+.toolbar{
+  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-top:16px
+}
+.count{color:var(--muted);font-size:13px}
+.buttons{display:flex;gap:9px;flex-wrap:wrap}
+.btn{
+  border:0;border-radius:10px;padding:10px 14px;font-weight:750;font-size:13px;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:.15s ease
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-secondary{background:#edf2f6;color:#334b5d}
+.btn-danger{background:#fff0ee;color:var(--danger);border:1px solid #f1c8c3}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.empty{padding:30px 16px;text-align:center;color:var(--muted);font-size:13px}
+.item{
+  border:1px solid var(--border);border-radius:15px;background:#fff;overflow:hidden;
+  display:flex;flex-direction:column;min-width:0
+}
+.item-top{
+  padding:11px 12px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;gap:8px;align-items:flex-start
+}
+.num{font-size:12px;font-weight:800;color:var(--primary)}
+.name{margin-top:3px;font-size:11px;color:var(--muted);word-break:break-word}
+.tag{
+  flex:0 0 auto;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:800;
+  background:#f1f4f6;color:#51606c
+}
+.preview{
+  aspect-ratio:4/3;background:#f6f8fa;display:flex;align-items:center;
+  justify-content:center;overflow:hidden
+}
+.preview img{width:100%;height:100%;object-fit:contain;background:#f6f8fa}
+.pdf-icon{
+  width:72px;height:88px;border:2px solid #c9574b;border-radius:8px;
+  display:grid;place-items:center;color:#b13e34;font-weight:900;background:#fff
+}
+.meta{padding:10px 12px;color:var(--muted);font-size:11px;min-height:48px}
+.item-actions{padding:0 12px 12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.mini{
+  border:1px solid var(--border);background:#fff;color:#4e6271;
+  border-radius:8px;padding:7px 6px;font-size:11px;font-weight:750
+}
+.mini:hover{background:#f7fafc}
+.mini:disabled{opacity:.45;cursor:not-allowed}
+.info-box{
+  background:#f7fafc;border:1px solid var(--border);border-radius:12px;
+  padding:12px 14px;color:#5c6d79;font-size:12px;margin-top:14px
+}
+.footer{text-align:center;color:var(--muted);font-size:11px;margin-top:14px}
+.toast{
+  position:fixed;right:18px;bottom:18px;max-width:360px;background:#18252e;color:#fff;
+  padding:12px 15px;border-radius:12px;font-size:12px;box-shadow:0 12px 30px rgba(0,0,0,.2);
+  display:none;z-index:50
+}
+.toast.show{display:block}
+.loading{
+  position:fixed;inset:0;background:rgba(255,255,255,.82);
+  display:none;align-items:center;justify-content:center;z-index:40
+}
+.loading.show{display:flex}
+.loading-box{
+  background:#fff;border:1px solid var(--border);border-radius:16px;padding:24px 28px;
+  text-align:center;box-shadow:var(--shadow);min-width:280px
+}
+.spinner{
+  width:34px;height:34px;border:4px solid #dce7ee;border-top-color:var(--primary);
+  border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.pdf-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(15,27,36,.62);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  z-index:100;
+}
+.pdf-modal.show{display:flex}
+.pdf-modal-box{
+  width:min(1120px,100%);
+  height:min(92vh,900px);
+  background:#fff;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 28px 80px rgba(0,0,0,.28);
+  display:flex;
+  flex-direction:column;
+}
+.pdf-modal-head{
+  padding:13px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.pdf-modal-head strong{font-size:14px}
+.pdf-modal-sub{
+  margin-top:2px;
+  color:var(--muted);
+  font-size:11px;
+}
+.pdf-viewer-wrap{
+  flex:1;
+  background:#e8edf1;
+  padding:8px;
+}
+.pdf-viewer-wrap iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  border-radius:10px;
+  background:#fff;
+}
+
+@media(max-width:1000px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:740px){
+  .wrap{width:min(100% - 20px,700px);padding-top:12px}
+  .hero{padding:22px;border-radius:20px}
+  .hero h1{font-size:24px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:500px){.grid{grid-template-columns:1fr}.card-body{padding:14px}}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>Kumpulan Bukti Pembayaran</h1>
+    <p>Upload bukti transfer, nota, atau dokumen pembayaran lalu gabungkan menjadi satu file PDF yang rapi.</p>
+  </header>
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Upload Bukti</h2>
+        <p>Tidak perlu menginput nominal, nama siswa, atau data transaksi.</p>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="dropzone" id="dropzone">
+        <div class="drop-icon">↥</div>
+        <h3>Tarik & lepas file di sini</h3>
+        <p>Atau klik area ini untuk memilih banyak file sekaligus.</p>
+        <div class="file-note">Format: JPG, JPEG, PNG, dan PDF · Maks. 20 MB per file</div>
+        <input class="file-input" id="fileInput" type="file" multiple
+          accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf">
+      </div>
+
+      <div class="toolbar">
+        <div class="count" id="countText">0 bukti</div>
+
+        <div class="buttons">
+          <button class="btn btn-secondary" id="addBtn">＋ Tambah File</button>
+          <button class="btn btn-secondary" id="refreshBtn" disabled>↻ Refresh</button>
+          <button class="btn btn-danger" id="clearBtn" disabled>Hapus Semua</button>
+          <button class="btn btn-secondary" id="previewBtn" disabled>▣ Lihat PDF</button>
+          <button class="btn btn-primary" id="downloadBtn" disabled>⇩ Download 1 PDF</button>
+        </div>
+      </div>
+
+      <div class="info-box">
+        Urutan kartu menentukan urutan bukti di PDF. Gunakan tombol <b>Naik</b> dan <b>Turun</b> untuk mengatur urutan. Tombol <b>Refresh</b> menyegarkan daftar bukti, mereset input file, dan membuat <b>Lihat PDF</b> mengambil susunan file terbaru.
+        Setiap gambar akan ditempatkan proporsional pada halaman A4 tanpa terpotong.
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Susunan Bukti</h2>
+        <p>Gambar dibuat satu halaman A4. PDF diawali rekapitulasi dan separator per dokumen.</p>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="grid" id="evidenceGrid"></div>
+      <div class="empty" id="emptyState">Belum ada bukti yang di-upload.</div>
+    </div>
+  </section>
+
+  <div class="footer">Semua file diproses langsung di browser dan tidak dikirim ke server.</div>
+</div>
+
+
+<div class="pdf-modal" id="pdfModal" aria-hidden="true">
+  <div class="pdf-modal-box">
+    <div class="pdf-modal-head">
+      <div>
+        <strong>Preview Lampiran PDF</strong>
+        <div class="pdf-modal-sub" id="pdfPreviewMeta">Periksa hasil lampiran sebelum men-download.</div>
+      </div>
+      <div class="buttons">
+        <button class="btn btn-secondary" id="closePreviewBtn">Tutup</button>
+        <button class="btn btn-primary" id="downloadFromPreviewBtn">⇩ Download PDF</button>
+      </div>
+    </div>
+    <div class="pdf-viewer-wrap">
+      <iframe id="pdfViewer" title="Preview PDF"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="loading" id="loading">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <strong id="loadingTitle">Membuat PDF...</strong>
+    <div id="loadingText" style="margin-top:5px;color:#71808d;font-size:12px">Mohon tunggu.</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const state = { files: [] };
+  const $ = id => document.getElementById(id);
+
+  function uid(){
+    return "f_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8);
+  }
+
+  function esc(text){
+    return String(text).replace(/[&<>"']/g, ch => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+    })[ch]);
+  }
+
+  function toast(message, error=false){
+    const el = $("toast");
+    el.textContent = message;
+    el.style.borderLeft = `4px solid ${error ? "#c62828" : "#2e8b57"}`;
+    el.classList.add("show");
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(() => el.classList.remove("show"), 3000);
+  }
+
+  function loading(show, title="Membuat PDF...", text="Mohon tunggu."){
+    $("loadingTitle").textContent = title;
+    $("loadingText").textContent = text;
+    $("loading").classList.toggle("show", show);
+  }
+
+  function allowed(file){
+    return ["image/jpeg","image/png","application/pdf"].includes(file.type) ||
+           /\.(jpe?g|png|pdf)$/i.test(file.name);
+  }
+
+  function readDataUrl(file){
+    return new Promise((resolve,reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  function invalidatePdfCache(){
+    lastPdfBlob = null;
+    if(lastPdfUrl){
+      URL.revokeObjectURL(lastPdfUrl);
+      lastPdfUrl = null;
+    }
+  }
+
+  async function addFiles(list){
+    const files = Array.from(list || []);
+    if(!files.length) return;
+
+    let added = 0;
+
+    for(const file of files){
+      if(!allowed(file)){
+        toast(`${file.name} dilewati: format tidak didukung.`, true);
+        continue;
+      }
+      if(file.size > 20 * 1024 * 1024){
+        toast(`${file.name} dilewati: ukuran lebih dari 20 MB.`, true);
+        continue;
+      }
+
+      try{
+        state.files.push({
+          id: uid(),
+          name: file.name,
+          type: file.type || (/\.pdf$/i.test(file.name) ? "application/pdf" : "image/jpeg"),
+          dataUrl: await readDataUrl(file)
+        });
+        added++;
+        invalidatePdfCache();
+      }catch(err){
+        console.error(err);
+        toast(`Gagal membaca ${file.name}.`, true);
+      }
+    }
+
+    render();
+
+    if(added) toast(`${added} bukti berhasil ditambahkan.`);
+  }
+
+  function render(){
+    const grid = $("evidenceGrid");
+    $("countText").textContent = `${state.files.length} bukti`;
+    $("clearBtn").disabled = !state.files.length;
+    $("refreshBtn").disabled = !state.files.length;
+    $("downloadBtn").disabled = !state.files.length;
+    $("previewBtn").disabled = !state.files.length;
+
+    if(!state.files.length){
+      grid.innerHTML = "";
+      $("emptyState").style.display = "block";
+      return;
+    }
+
+    $("emptyState").style.display = "none";
+
+    grid.innerHTML = state.files.map((file,i) => {
+      const pdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+
+      return `
+        <article class="item">
+          <div class="item-top">
+            <div style="min-width:0">
+              <div class="num">Bukti #${i+1}</div>
+              <div class="name">${esc(file.name)}</div>
+            </div>
+            <div class="tag">${pdf ? "PDF" : "GAMBAR"}</div>
+          </div>
+
+          <div class="preview">
+            ${pdf ? '<div class="pdf-icon">PDF</div>' : `<img src="${file.dataUrl}" alt="Bukti ${i+1}" loading="lazy">`}
+          </div>
+
+          <div class="meta">
+            ${pdf
+              ? "Seluruh halaman PDF akan masuk ke file gabungan."
+              : "Gambar akan diposisikan proporsional pada A4 tanpa terpotong."}
+          </div>
+
+          <div class="item-actions">
+            <button class="mini" data-action="up" data-id="${file.id}" ${i===0?"disabled":""}>↑ Naik</button>
+            <button class="mini" data-action="down" data-id="${file.id}" ${i===state.files.length-1?"disabled":""}>↓ Turun</button>
+            <button class="mini" data-action="delete" data-id="${file.id}">Hapus</button>
+          </div>
+        </article>
+      `;
+    }).join("");
+  }
+
+  function move(id, direction){
+    const i = state.files.findIndex(x => x.id === id);
+    if(i < 0) return;
+    const j = i + direction;
+    if(j < 0 || j >= state.files.length) return;
+
+    [state.files[i], state.files[j]] = [state.files[j], state.files[i]];
+    invalidatePdfCache();
+    render();
+  }
+
+  function remove(id){
+    const file = state.files.find(x => x.id === id);
+    if(!file) return;
+
+    if(!confirm(`Hapus bukti "${file.name}"?`)) return;
+
+    state.files = state.files.filter(x => x.id !== id);
+    invalidatePdfCache();
+    render();
+    toast("Bukti dihapus.");
+  }
+
+  function clearAll(){
+    if(!state.files.length) return;
+
+    if(!confirm("Hapus semua bukti yang sudah di-upload?")) return;
+
+    state.files = [];
+    $("fileInput").value = "";
+    invalidatePdfCache();
+    render();
+    toast("Semua bukti dihapus.");
+  }
+
+  function refreshUploads(){
+    // Refresh menyegarkan daftar dan membuat PDF lama dianggap kadaluarsa.
+    // Saat "Lihat PDF" ditekan, PDF akan dibuat ulang dari file terbaru.
+    $("fileInput").value = "";
+    invalidatePdfCache();
+    render();
+
+    if(state.files.length){
+      toast("Daftar bukti telah direfresh. Untuk menambahkan file baru, klik “Tambah File”.");
+    }else{
+      toast("Tampilan upload telah direfresh.");
+    }
+  }
+
+  function dataUrlToBytes(dataUrl){
+    const base64 = dataUrl.split(",")[1];
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  function loadImage(dataUrl){
+    return new Promise((resolve,reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+
+  function drawLine(page, x1, y1, x2, y2, color=PDFLib.rgb(.86,.89,.91), thickness=1){
+    page.drawLine({
+      start:{x:x1,y:y1},
+      end:{x:x2,y:y2},
+      thickness,
+      color
+    });
+  }
+
+  function drawPill(page, text, x, y, bg, fg){
+    const w = Math.max(42, text.length * 5.3 + 16);
+    page.drawRectangle({
+      x, y:y-10, width:w, height:18,
+      color:bg, borderColor:bg, borderWidth:0
+    });
+    page.drawText(text, {
+      x:x+8, y:y-5, size:7.5, color:fg
+    });
+    return w;
+  }
+
+  function drawEvidenceHeader(page, file, index, pageLabel){
+    const W = page.getWidth();
+    const H = page.getHeight();
+    const M = 30;
+
+    page.drawText(`BUKTI #${index+1}`, {
+      x:M, y:H-25, size:10,
+      color:PDFLib.rgb(.13,.30,.43)
+    });
+
+    const badge = file.type === "application/pdf" || /\.pdf$/i.test(file.name) ? "PDF" : "GAMBAR";
+    drawPill(
+      page,
+      badge,
+      W-M-48,
+      H-21,
+      badge === "PDF" ? PDFLib.rgb(.98,.92,.91) : PDFLib.rgb(.91,.96,.98),
+      badge === "PDF" ? PDFLib.rgb(.66,.20,.16) : PDFLib.rgb(.13,.36,.52)
+    );
+
+    const shortName = file.name.length > 82 ? file.name.slice(0,79) + "..." : file.name;
+    page.drawText(shortName, {
+      x:M, y:H-39, size:7.5,
+      color:PDFLib.rgb(.43,.49,.54)
+    });
+
+    drawLine(page, M, H-48, W-M, H-48, PDFLib.rgb(.84,.88,.91), .8);
+
+    if(pageLabel){
+      page.drawText(pageLabel, {
+        x:W-M, y:H-39, size:7,
+        color:PDFLib.rgb(.50,.55,.59)
+      }, {align:"right"});
+    }
+  }
+
+  async function addImage(output, file, index){
+    const img = await loadImage(file.dataUrl);
+
+    const W = 595.28;
+    const H = 841.89;
+    const M = 30;
+    const TOP = 72;
+    const BOTTOM = 34;
+
+    const page = output.addPage([W,H]);
+    drawEvidenceHeader(page, file, index, "1 halaman");
+
+    const innerW = W - M*2;
+    const innerH = H - TOP - BOTTOM;
+    const ratio = Math.min(innerW/img.naturalWidth, innerH/img.naturalHeight);
+    const w = img.naturalWidth * ratio;
+    const h = img.naturalHeight * ratio;
+
+    const embedded = file.type === "image/png"
+      ? await output.embedPng(file.dataUrl)
+      : await output.embedJpg(file.dataUrl);
+
+    page.drawImage(embedded, {
+      x:M+(innerW-w)/2,
+      y:BOTTOM+(innerH-h)/2,
+      width:w,
+      height:h
+    });
+
+    drawLine(page, M, 20, W-M, 20, PDFLib.rgb(.90,.92,.94), .7);
+    page.drawText("Kumpulan Bukti Pembayaran", {
+      x:M, y:10, size:7,
+      color:PDFLib.rgb(.55,.59,.62)
+    });
+  }
+
+  async function loadSourcePdf(file){
+    return PDFLib.PDFDocument.load(dataUrlToBytes(file.dataUrl), {
+      ignoreEncryption:false
+    });
+  }
+
+  async function addPdfSection(output, file, index, pageCount){
+    const W = 595.28;
+    const H = 841.89;
+    const M = 42;
+
+    // Divider page sebelum dokumen PDF agar tiap bukti mudah dikenali.
+    const divider = output.addPage([W,H]);
+
+    divider.drawText(`BUKTI #${index+1}`, {
+      x:M, y:H-118, size:24,
+      color:PDFLib.rgb(.10,.28,.41)
+    });
+
+    divider.drawText("DOKUMEN PDF", {
+      x:M, y:H-147, size:9,
+      color:PDFLib.rgb(.44,.50,.55)
+    });
+
+    drawLine(divider, M, H-166, W-M, H-166, PDFLib.rgb(.82,.87,.90), 1);
+
+    const name = file.name.length > 72 ? file.name.slice(0,69) + "..." : file.name;
+    divider.drawText(name, {
+      x:M, y:H-205, size:13,
+      color:PDFLib.rgb(.18,.25,.30)
+    });
+
+    divider.drawText(`${pageCount} halaman`, {
+      x:M, y:H-232, size:9,
+      color:PDFLib.rgb(.45,.51,.56)
+    });
+
+    drawPill(
+      divider,
+      "PDF",
+      M,
+      H-282,
+      PDFLib.rgb(.98,.92,.91),
+      PDFLib.rgb(.66,.20,.16)
+    );
+
+    divider.drawText("Seluruh halaman dokumen berikutnya merupakan bukti yang diunggah.", {
+      x:M, y:H-324, size:8.5,
+      color:PDFLib.rgb(.43,.49,.54)
+    });
+
+    drawLine(divider, M, 62, W-M, 62, PDFLib.rgb(.90,.92,.94), .8);
+    divider.drawText("Kumpulan Bukti Pembayaran", {
+      x:M, y:48, size:7,
+      color:PDFLib.rgb(.55,.59,.62)
+    });
+
+    // Salin seluruh halaman PDF asli, tanpa mengubah isi dokumen.
+    const source = await loadSourcePdf(file);
+    const pages = await output.copyPages(source, source.getPageIndices());
+    pages.forEach(page => output.addPage(page));
+  }
+
+  function drawRecapRow(page, y, cols, values, rowHeight, index){
+    const M = 42;
+    const bg = index % 2 === 0 ? PDFLib.rgb(.985,.99,.995) : PDFLib.rgb(1,1,1);
+
+    page.drawRectangle({
+      x:M, y:y-rowHeight+2,
+      width:cols.reduce((a,c)=>a+c.w,0),
+      height:rowHeight,
+      color:bg
+    });
+
+    let x=M;
+    values.forEach((value, i) => {
+      const size = i===1 ? 7.2 : 7.4;
+      const color = i===1 ? PDFLib.rgb(.18,.25,.30) : PDFLib.rgb(.36,.43,.48);
+      const txt = String(value);
+      const lines = page.doc ? [] : null;
+
+      // Truncate long file names only in the recap, keeping the source file intact.
+      let display = txt;
+      const maxChars = i===1 ? 52 : 18;
+      if(display.length > maxChars) display = display.slice(0,maxChars-3) + "...";
+
+      page.drawText(display, {
+        x:x+6, y:y-10, size,
+        color
+      });
+      x += cols[i].w;
+    });
+  }
+
+  async function collectDocumentInfo(){
+    const info = [];
+
+    for(let i=0;i<state.files.length;i++){
+      const file = state.files[i];
+      const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+
+      let pages = 1;
+      if(isPdf){
+        try{
+          const source = await loadSourcePdf(file);
+          pages = source.getPageCount();
+        }catch(err){
+          pages = "?";
+        }
+      }
+
+      info.push({
+        file,
+        index:i,
+        isPdf,
+        pages
+      });
+    }
+
+    return info;
+  }
+
+  function drawRecapPage(output, rows, pageNumber, pageTotalHint, totalFiles, imageCount, pdfCount, totalPdfPages){
+    const W = 595.28;
+    const H = 841.89;
+    const M = 42;
+    const page = output.addPage([W,H]);
+
+    page.drawText("REKAPITULASI", {
+      x:M, y:H-74, size:26,
+      color:PDFLib.rgb(.10,.28,.41)
+    });
+
+    page.drawText("BUKTI PEMBAYARAN", {
+      x:M, y:H-99, size:12,
+      color:PDFLib.rgb(.36,.44,.49)
+    });
+
+    page.drawText(
+      new Intl.DateTimeFormat("id-ID",{
+        day:"2-digit",month:"long",year:"numeric"
+      }).format(new Date()),
+      {
+        x:W-M, y:H-82, size:8,
+        color:PDFLib.rgb(.47,.52,.56)
+      }
+    );
+
+    drawLine(page, M, H-115, W-M, H-115, PDFLib.rgb(.79,.85,.89), 1);
+
+    const statY = H-160;
+    const gap = 9;
+    const statW = (W-M*2-gap*3)/4;
+    const stat = [
+      ["TOTAL BUKTI", String(totalFiles)],
+      ["GAMBAR", String(imageCount)],
+      ["FILE PDF", String(pdfCount)],
+      ["HALAMAN PDF", String(totalPdfPages)]
+    ];
+
+    stat.forEach(([label,value],i)=>{
+      const x = M+i*(statW+gap);
+
+      page.drawRectangle({
+        x, y:statY-36, width:statW, height:46,
+        color:PDFLib.rgb(.965,.978,.986),
+        borderColor:PDFLib.rgb(.86,.89,.91),
+        borderWidth:.7
+      });
+
+      page.drawText(label,{
+        x:x+8, y:statY-8, size:6.4,
+        color:PDFLib.rgb(.47,.53,.58)
+      });
+
+      page.drawText(value,{
+        x:x+8, y:statY-27, size:14,
+        color:PDFLib.rgb(.12,.23,.31)
+      });
+    });
+
+    page.drawText("DAFTAR BUKTI", {
+      x:M, y:H-228, size:10,
+      color:PDFLib.rgb(.17,.27,.34)
+    });
+
+    const cols = [
+      {w:38,title:"No."},
+      {w:286,title:"Nama File"},
+      {w:82,title:"Jenis"},
+      {w:94,title:"Halaman"}
+    ];
+
+    let y = H-250;
+    const headH = 24;
+    page.drawRectangle({
+      x:M, y:y-headH+2,
+      width:cols.reduce((a,c)=>a+c.w,0),
+      height:headH,
+      color:PDFLib.rgb(.13,.30,.43)
+    });
+
+    let x=M;
+    cols.forEach(c=>{
+      page.drawText(c.title,{
+        x:x+6,y:y-14,size:7.2,
+        color:PDFLib.rgb(1,1,1)
+      });
+      x+=c.w;
+    });
+
+    y -= headH;
+
+    rows.forEach((r,idx)=>{
+      const rowH=25;
+
+      if(y-rowH < 58) return;
+
+      const values = [
+        String(r.index+1),
+        r.file.name,
+        r.isPdf ? "PDF" : "Gambar",
+        r.isPdf ? String(r.pages) : "1"
+      ];
+
+      drawRecapRow(page,y,cols,values,rowH,idx);
+      y -= rowH;
+    });
+
+    if(pageNumber===1){
+      page.drawText("Catatan: file PDF asli dipertahankan seluruh halamannya. Gambar dibuat proporsional pada halaman A4.",{
+        x:M,y:43,size:7,
+        color:PDFLib.rgb(.49,.54,.58)
+      });
+    }else{
+      page.drawText("Rekapitulasi lanjutan",{
+        x:M,y:43,size:7,
+        color:PDFLib.rgb(.49,.54,.58)
+      });
+    }
+
+    page.drawText(`Halaman rekap ${pageNumber}${pageTotalHint ? ` / ${pageTotalHint}` : ""}`,{
+      x:W-M,y:43,size:7,
+      color:PDFLib.rgb(.49,.54,.58)
+    });
+
+    return page;
+  }
+
+  async function makePdf(){
+    if(!state.files.length){
+      toast("Upload minimal satu bukti pembayaran.", true);
+      return null;
+    }
+
+    if(!window.PDFLib){
+      toast("Library PDF belum termuat. Pastikan internet aktif lalu buka ulang file.", true);
+      return null;
+    }
+
+    loading(true, "Menyiapkan PDF...", "Membaca jumlah halaman setiap dokumen.");
+
+    try{
+      const output = await PDFLib.PDFDocument.create();
+      const documentInfo = await collectDocumentInfo();
+
+      const totalFiles = documentInfo.length;
+      const imageCount = documentInfo.filter(x=>!x.isPdf).length;
+      const pdfCount = documentInfo.filter(x=>x.isPdf).length;
+      const totalPdfPages = documentInfo
+        .filter(x=>x.isPdf && typeof x.pages==="number")
+        .reduce((sum,x)=>sum+x.pages,0);
+
+      // Rekap dibuat beberapa halaman jika bukti sangat banyak.
+      const rowsPerPage = 20;
+      const recapPages = Math.ceil(documentInfo.length / rowsPerPage);
+
+      for(let p=0;p<recapPages;p++){
+        drawRecapPage(
+          output,
+          documentInfo.slice(p*rowsPerPage,(p+1)*rowsPerPage),
+          p+1,
+          recapPages,
+          totalFiles,
+          imageCount,
+          pdfCount,
+          totalPdfPages
+        );
+      }
+
+      // Tambahkan bukti sesuai urutan yang tampil di aplikasi.
+      for(let i=0;i<documentInfo.length;i++){
+        const info = documentInfo[i];
+        loading(
+          true,
+          "Membuat PDF...",
+          `Memproses bukti ${i+1} dari ${totalFiles}: ${info.file.name}`
+        );
+
+        if(info.isPdf){
+          await addPdfSection(output, info.file, info.index, info.pages);
+        }else{
+          await addImage(output, info.file, info.index);
+        }
+      }
+
+      output.setTitle("Rekapitulasi Kumpulan Bukti Pembayaran");
+      output.setAuthor("Wali Kelas");
+      output.setSubject("Rekapitulasi dan kumpulan bukti pembayaran");
+      output.setKeywords(["rekapitulasi","bukti pembayaran","nota","wali kelas"]);
+
+      const bytes = await output.save();
+      return new Blob([bytes],{type:"application/pdf"});
+    }catch(err){
+      console.error(err);
+      toast("Gagal membuat PDF. Coba kurangi jumlah atau ukuran file.", true);
+      return null;
+    }finally{
+      loading(false);
+    }
+  }
+
+  let lastPdfBlob = null;
+  let lastPdfUrl = null;
+
+  async function getPdfBlob(forceRefresh = false){
+    // Gunakan PDF cache hanya bila data belum berubah.
+    if(!forceRefresh && lastPdfBlob) return lastPdfBlob;
+    return await makePdf();
+  }
+
+  function openPreview(blob){
+    if(!blob) return;
+
+    if(lastPdfUrl) URL.revokeObjectURL(lastPdfUrl);
+    lastPdfUrl = URL.createObjectURL(blob);
+
+    $("pdfViewer").src = lastPdfUrl;
+    $("pdfPreviewMeta").textContent =
+      `${state.files.length} bukti · Periksa setiap halaman sebelum men-download.`;
+
+    $("pdfModal").classList.add("show");
+    $("pdfModal").setAttribute("aria-hidden","false");
+  }
+
+  function closePreview(){
+    $("pdfModal").classList.remove("show");
+    $("pdfModal").setAttribute("aria-hidden","true");
+    // Keep URL alive so the preview can be reopened and downloaded.
+  }
+
+  function filename(){
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth()+1).padStart(2,"0");
+    const d = String(now.getDate()).padStart(2,"0");
+    return `Kumpulan_Bukti_Pembayaran_${y}-${m}-${d}.pdf`;
+  }
+
+  function saveBlob(blob){
+    if(!blob) return;
+
+    if(lastPdfUrl) URL.revokeObjectURL(lastPdfUrl);
+    lastPdfUrl = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = lastPdfUrl;
+    a.download = filename();
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => {
+      if(lastPdfUrl){
+        URL.revokeObjectURL(lastPdfUrl);
+        lastPdfUrl = null;
+      }
+    },10000);
+
+    lastPdfBlob = blob;
+    toast("PDF berhasil dibuat dan di-download.");
+  }
+
+  async function previewPdf(){
+    const blob = await getPdfBlob(true);
+    if(!blob) return;
+
+    lastPdfBlob = blob;
+    openPreview(blob);
+  }
+
+  async function downloadPdf(){
+    // If a preview already exists, download exactly that previewed PDF.
+    const blob = await getPdfBlob();
+    if(!blob) return;
+
+    saveBlob(blob);
+  }
+
+  function bind(){
+    $("addBtn").addEventListener("click",()=>$("fileInput").click());
+    $("dropzone").addEventListener("click",()=>$("fileInput").click());
+
+    $("fileInput").addEventListener("change",e=>{
+      addFiles(e.target.files);
+      e.target.value="";
+    });
+
+    ["dragenter","dragover"].forEach(type=>{
+      $("dropzone").addEventListener(type,e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        $("dropzone").classList.add("drag");
+      });
+    });
+
+    ["dragleave","drop"].forEach(type=>{
+      $("dropzone").addEventListener(type,e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        $("dropzone").classList.remove("drag");
+      });
+    });
+
+    $("dropzone").addEventListener("drop",e=>addFiles(e.dataTransfer.files));
+
+    $("evidenceGrid").addEventListener("click",e=>{
+      const btn=e.target.closest("[data-action]");
+      if(!btn) return;
+
+      const id=btn.dataset.id;
+      const action=btn.dataset.action;
+
+      if(action==="up") move(id,-1);
+      if(action==="down") move(id,1);
+      if(action==="delete") remove(id);
+    });
+
+    $("clearBtn").addEventListener("click",clearAll);
+    $("refreshBtn").addEventListener("click",refreshUploads);
+
+    $("previewBtn").addEventListener("click",previewPdf);
+    $("downloadBtn").addEventListener("click",downloadPdf);
+    $("downloadFromPreviewBtn").addEventListener("click",downloadPdf);
+    $("closePreviewBtn").addEventListener("click",closePreview);
+
+    $("pdfModal").addEventListener("click",e=>{
+      if(e.target === $("pdfModal")) closePreview();
+    });
+
+    document.addEventListener("keydown",e=>{
+      if(e.key === "Escape" && $("pdfModal").classList.contains("show")) closePreview();
+    });
+  }
+
+  render();
+  bind();
+})();
+</script>
+</body>
+</html>
